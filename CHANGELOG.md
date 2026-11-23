@@ -6,6 +6,12 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-23
+
+### Added
+- Public `PhoenixTransport` protocol, `PhoenixTransportReadyState`, and `URLSessionTransport`, so custom transports can be supplied.
+- `Socket.init` overloads taking a `transportFactory`, called with the endpoint URL on every connect and reconnect.
+
 ## [0.1.0] - 2026-03-07
 
 ### Added

@@ -11,7 +11,7 @@ public enum TransportEvent: Sendable, Equatable {
   case close(Int, String?)
 }
 
-protocol PhoenixTransport: Sendable {
+public protocol PhoenixTransport: Sendable {
   func readyState() async -> PhoenixTransportReadyState
   func events(bufferingPolicy: AsyncStream<TransportEvent>.Continuation.BufferingPolicy) async -> AsyncStream<TransportEvent>
   func connect(with headers: [String: String]) async
@@ -20,7 +20,7 @@ protocol PhoenixTransport: Sendable {
   func sendBinary(data: Data) async
 }
 
-enum PhoenixTransportReadyState: Sendable {
+public enum PhoenixTransportReadyState: Sendable {
   case connecting
   case open
   case closing
@@ -81,7 +81,7 @@ private final class URLSessionWebSocketDelegateProxy: NSObject, URLSessionWebSoc
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
-actor URLSessionTransport: PhoenixTransport {
+public actor URLSessionTransport: PhoenixTransport {
   internal let url: URL
   internal let configuration: URLSessionConfiguration
 
@@ -92,7 +92,7 @@ actor URLSessionTransport: PhoenixTransport {
   private var receiveTask: Task<Void, Never>?
   private var delegateProxy: URLSessionWebSocketDelegateProxy?
 
-  init(url: URL, configuration: URLSessionConfiguration = .default) {
+  public init(url: URL, configuration: URLSessionConfiguration = .default) {
     let endpoint = url.absoluteString
     let wsEndpoint = endpoint
       .replacingOccurrences(of: "http://", with: "ws://")
@@ -101,11 +101,11 @@ actor URLSessionTransport: PhoenixTransport {
     self.configuration = configuration
   }
 
-  func readyState() async -> PhoenixTransportReadyState {
+  public func readyState() async -> PhoenixTransportReadyState {
     ready
   }
 
-  func events(bufferingPolicy: AsyncStream<TransportEvent>.Continuation.BufferingPolicy = .unbounded) async -> AsyncStream<TransportEvent> {
+  public func events(bufferingPolicy: AsyncStream<TransportEvent>.Continuation.BufferingPolicy = .unbounded) async -> AsyncStream<TransportEvent> {
     let id = UUID()
     let (stream, continuation) = AsyncStream<TransportEvent>.makeStream(bufferingPolicy: bufferingPolicy)
     await broadcaster.add(continuation, id: id)
@@ -117,7 +117,7 @@ actor URLSessionTransport: PhoenixTransport {
     return stream
   }
 
-  func connect(with headers: [String: String]) async {
+  public func connect(with headers: [String: String]) async {
     // Clean up any previous connection to avoid leaking a URLSession.
     receiveTask?.cancel()
     receiveTask = nil
@@ -147,7 +147,7 @@ actor URLSessionTransport: PhoenixTransport {
     webSocketTask.resume()
   }
 
-  func disconnect(code: Int, reason: String?) async {
+  public func disconnect(code: Int, reason: String?) async {
     ready = .closing
 
     let closeCode = URLSessionWebSocketTask.CloseCode(rawValue: code) ?? .normalClosure
@@ -164,7 +164,7 @@ actor URLSessionTransport: PhoenixTransport {
     await broadcaster.finish()
   }
 
-  func sendText(data: Data) async {
+  public func sendText(data: Data) async {
     guard let task,
           let text = String(data: data, encoding: .utf8)
     else {
@@ -178,7 +178,7 @@ actor URLSessionTransport: PhoenixTransport {
     }
   }
 
-  func sendBinary(data: Data) async {
+  public func sendBinary(data: Data) async {
     guard let task else { return }
     do {
       try await task.send(.data(data))

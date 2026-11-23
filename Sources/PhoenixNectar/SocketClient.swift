@@ -242,6 +242,52 @@ public actor Socket {
     )
   }
 
+  /// Creates a client that opens its WebSocket through a custom transport.
+  ///
+  /// `transportFactory` is called with the endpoint URL on every connect and reconnect.
+  public init(
+    endpoint: String,
+    configuration: Configuration = .default,
+    authTokenProvider: AuthTokenProvider? = nil,
+    transportFactory: @escaping @Sendable (URL) -> any PhoenixTransport
+  ) throws {
+    try self.init(
+      endpoint: endpoint,
+      configuration: configuration,
+      connectParamsProvider: nil,
+      authTokenProvider: authTokenProvider,
+      scheduler: ClockScheduler(),
+      transportFactory: transportFactory
+    )
+  }
+
+  /// Creates a client with typed connect params that opens its WebSocket through a custom transport.
+  ///
+  /// `transportFactory` is called with the endpoint URL on every connect and reconnect.
+  public init<ConnectParams: Encodable & Sendable>(
+    endpoint: String,
+    configuration: Configuration = .default,
+    connectParamsProvider: @escaping @Sendable () -> ConnectParams?,
+    authTokenProvider: AuthTokenProvider? = nil,
+    transportFactory: @escaping @Sendable (URL) -> any PhoenixTransport
+  ) throws {
+    try self.init(
+      endpoint: endpoint,
+      configuration: configuration,
+      connectParamsProvider: {
+        guard let params = connectParamsProvider() else { return nil }
+        let encoded = try PhoenixValue.fromEncodable(params)
+        guard case .object(let object) = encoded else {
+          throw PhoenixError.encodingFailure("Encoded connect params are not a JSON object")
+        }
+        return object
+      },
+      authTokenProvider: authTokenProvider,
+      scheduler: ClockScheduler(),
+      transportFactory: transportFactory
+    )
+  }
+
   init(
     endpoint: String,
     configuration: Configuration = .default,
