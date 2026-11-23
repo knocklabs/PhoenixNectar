@@ -115,17 +115,6 @@ Use `joinChannel(..., params: ...)` only when your server expects a `phx_join` p
 | `connectParamsProvider` | Socket-level metadata (device ID, locale, etc.) |
 | `joinChannel(..., params:)` | Channel-specific `phx_join` payloads only |
 
-## Custom Transports
-
-Pass `transportFactory` to supply your own `PhoenixTransport`. It is called with the endpoint URL on every connect and reconnect, so it can resolve a fresh URL each time. `URLSessionTransport` is public and can be wrapped or used as the base transport.
-
-```swift
-let client = try Socket(
-  endpoint: "wss://api.example.com/socket",
-  transportFactory: { url in URLSessionTransport(url: url) }
-)
-```
-
 ## Connection State
 
 ```swift
